@@ -121,9 +121,9 @@ namespace MusicLibrary
             {
                 if (SongChange.Checked)
                     Library.ChangeSong(Before, list);
-               /* else if (AlbumChange.Checked)
+                else if (AlbumChange.Checked)
                     Library.ChangeAlbum(Before, list);
-                else if (BandChange.Checked)
+                /*else if (BandChange.Checked)
                     Library.ChangeBand(Before, list);*/
                 ChangeTB();
                 Form.FullPrint();

@@ -37,13 +37,20 @@ namespace MusicLibrary
             return false;
         }
 
-        public int DeleteSong(string band, string song)
+        public void DeleteSong(string band, string song)
         {
             var sng = Songs.Where(x => x.Name.ToUpper() == song.ToUpper()).First();
-            Songs.Remove(sng);
             Library.ExecNonQuery($"DELETE FROM [{band}_{Name}] WHERE Name=N'{song}'");
+            Songs.Remove(sng);
 
-            return Songs.Count;
+            if (Songs.Count == 0)
+                Library.DeleteAlbum(band, Name);
+        }
+
+        public void CopyFrom(string band, Album alb)
+        {
+            foreach (var song in alb.Songs)
+                InsertSong(band, song.Name);
         }
     }
 }

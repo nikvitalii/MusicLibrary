@@ -47,20 +47,31 @@ namespace MusicLibrary
 
         public int DeleteAlbum(string alb)
         {
-            var album = Albums.Where(x => x.Name.ToUpper() == alb.ToUpper()).First();
-            Albums.Remove(album);
-            Library.ExecNonQuery($"DELETE FROM [{Name}] WHERE Name=N'{alb}'");
-            Library.ExecNonQuery($"DROP TABLE [{Name}_{alb}]");
-
+            var album = ReturnAlbum(alb);
+            DeleteAlbum(album);
             return Albums.Count;
         }
 
-        public void ChangeAlbum(List<string> before, List<string> after)
+        public void DeleteAlbum(Album alb)
         {
-            if(before[1] != after[1])
-            {
-                //GetAlbumByName()
-            }
+            Library.ExecNonQuery($"DELETE FROM [{Name}] WHERE Name=N'{alb.Name}'");
+            Library.ExecNonQuery($"DROP TABLE [{Name}_{alb.Name}]");
+            Albums.Remove(alb);
+            if (Albums.Count == 0)
+                Library.DeleteBand(this);
+        }
+
+
+
+        public void ChangeAlbum(List<string> before, List<string> after, Album albumBefore = null)
+        {
+            if(albumBefore == null)
+                albumBefore = GetAlbumByName(before[1], before[2]);
+
+            var albumAfter = GetAlbumByName(after[1], after[2]);
+
+            albumAfter.CopyFrom(Name, albumBefore);
+            DeleteAlbum(albumBefore);
         }
 
 

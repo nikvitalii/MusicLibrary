@@ -97,17 +97,17 @@ namespace MusicLibrary
         {
             var band = Bands.Where(x => x.Name.ToUpper() == list[0].ToUpper()).First();
             var album = band.ReturnAlbum(list[1]);
-            if (album.DeleteSong(list[0], list[2]) == 0)
-                if (band.DeleteAlbum(list[1]) == 0)
-                    DeleteBand(band);
+            album.DeleteSong(list[0], list[2]);
 
         }
 
         static public void DeleteAlbum(string band, string album)
         {
             var bnd = Bands.Where(x => x.Name.ToUpper() == band.ToUpper()).First();
-            bnd.DeleteAlbum(album);
+            if (bnd.DeleteAlbum(album) == 0)
+                DeleteBand(band);
         }
+
 
         static public void DeleteBand(Band band)
         {
@@ -131,20 +131,22 @@ namespace MusicLibrary
             AddItem(after[0], after[1], after[3], after[2], after[4]);
         }
 
-
-        
-
         static public void ChangeAlbum(List<string> before, List<string> after)
         {
             Band bandBefore = null;
             Band bandAfter = null;
 
             bandBefore = GetBandByName(before[3], before[4]);
-
-            if (before[3] != after[3])
-                bandAfter = GetBandByName(after[3], after[4]);
+            bandAfter = GetBandByName(after[3], after[4]);
+            if (before[3] == after[3])
+            {
+                bandBefore.ChangeAlbum(before, after);
+            }
             else
-                bandAfter = bandBefore;
+            {
+                Album alb = bandBefore.GetAlbumByName(before[1], before[2]);
+                bandAfter.ChangeAlbum(before, after, alb);
+            }
         }
 
 
@@ -406,8 +408,6 @@ namespace MusicLibrary
             }
 
         }
-
-
         static public void ClearDatabase()
         {
             DialogResult result = MessageBox.Show(
@@ -455,34 +455,6 @@ namespace MusicLibrary
             }
         }
 
-
-        ///////////////////
-        static public void AddSong()
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionStr))
-            {
-                string query;
-            }
-        }
-        static public void AddAlbum()
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionStr))
-            {
-                string query;
-            }
-        }
-        static public void AddBand(string band, string genre)
-        {
-            var list = Bands.Where(x => x.Name == band);
-            if (list.Count() == 0)
-            {
-                string query = $"CREATE TABLE[{band}] ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY, [Genre]NVARCHAR(50) NOT NULL)";
-                ExecNonQuery(query);
-
-                query = $"INSERT INTO BandName VALUES(N'{band}',N'{genre}')";
-                ExecNonQuery(query);
-            }
-        }
 
         static public void ExecNonQuery(string query)
         {
