@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MusicLibrary
 {
-    class Song : Item
+    public class Song : Item
     {
         public Song(string n) : base(n)
         { }

@@ -12,330 +12,143 @@ namespace MusicLibrary
 {
     public static class Library
     {
-        ////////////connection
-        public static string ConnectionStr = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "data\\MusicLibrary.mdf")};Integrated Security = True; Connect Timeout = 30";
-        public static SqlConnection Connection = new SqlConnection(ConnectionStr);
-        private static List<Band> Bands;
-
-        static public void Open()
-        {
-            Bands = new List<Band>();
-            Connection.Open();
-        }
-        static public void Close()
-        {
-            Connection.Close();
-        }
-        //
+        
+        public static string ConnectionStr = 
+            $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=
+            {Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), 
+            "data\\MusicLibrary.mdf")};Integrated Security = True; Connect Timeout = 30";
+        public static List<Band> Bands;
 
 
-        //queries
         static public void LoadDatabase()
         {
-            List <Band> list = new List<Band>();
-
-
-        }
-
-
-        static public List<string[]> FullDatabase()
-        {
-            string query = "SELECT * FROM BandName";
-            SqlCommand command = new SqlCommand(query, Connection);
-            var data = new List<string[]>();
-            var bands = new List<string[]>();
-            try
+            List<string[]> bands = new List<string[]>(ListStringArrayRead("SELECT * FROM BandName"));
+            Bands = new List<Band>();
+            foreach(var band in bands)
             {
-                using (SqlDataReader reader = command.ExecuteReader())
-                    while (reader.Read())
-                        bands.Add(new string[] { reader[0].ToString(), reader[1].ToString() });
+                Bands.Add(new Band(band[0], band[1]));
+                List<string[]> albums = new List<string[]>(ListStringArrayRead($"SELECT * FROM [{band[0]}]"));
 
-                foreach (var band in bands)
+                foreach(var album in albums)
                 {
-                    var albums = new List<string[]>();
-                    query = $"SELECT * FROM [{band[0]}]";
-                    command = new SqlCommand(query, Connection);
-                    try
-                    {
-                        using (SqlDataReader reader = command.ExecuteReader())
-                            while (reader.Read())
-                                albums.Add(new string[] { reader[0].ToString(), reader[1].ToString() });
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        throw;
-                    }
-                    foreach (var album in albums)
-                    {
-                        query = $"SELECT * FROM [{band[0]}_{album[0]}]";
-                        command = new SqlCommand(query, Connection);
-                        try
-                        {
-                            using (SqlDataReader reader = command.ExecuteReader())
-                                while (reader.Read())
-                                    data.Add(new string[] { reader[0].ToString(), album[0], album[1], band[0], band[1] });
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            throw;
-                        }
-                    }
+                    Bands[Bands.Count - 1].Albums.Add(new Album(album[0], album[1]));
+                    List<string> songs = new List<string>(ListStringRead($"SELECT * FROM [{band[0]}_{album[0]}]"));
+
+                    foreach(var song in songs)
+                        Bands[Bands.Count - 1].Albums[Bands[Bands.Count - 1].Albums.Count - 1].Songs.Add(new Song(song)); 
                 }
-                return data;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
             }
         }
-        static public void AddItem(string song, string album, string band, int year, string genre)
+        static public List<Band> FullDatabase()
         {
-            string query = $"SELECT * FROM BandName WHERE Band=N'{band}'";
-            SqlCommand command = new SqlCommand(query, Connection);
-            var bands = new List<string[]>();
+            return Bands;
+        }
 
-            try
-            {
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                    bands.Add(new string[2] { reader[0].ToString(), reader[1].ToString() });
-                reader.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
 
-            if (bands.Count == 0)
-            {
-                query = $"INSERT INTO BandName VALUES(N'{band}',N'{genre}')";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
+        static public Band GetBandByName(string band, string genre)
+        {
+            var bands = Bands.Where(x => x.Name.ToUpper() == band.ToUpper());
+            Band bnd;
 
-                query = $"CREATE TABLE [{band}] ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY , [Genre]NVARCHAR(50) NOT NULL)";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-            }
-
-            query = $"SELECT * FROM [{band}] WHERE Name=N'{album}'";
-            command = new SqlCommand(query, Connection);
-            var albums = new List<string[]>();
-            try
+            if (bands.Count() == 0)
             {
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                    albums.Add(new string[2] { reader[0].ToString(), reader[1].ToString() });
-
-                reader.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-
-            if (albums.Count == 0)
-            {
-                query = $"INSERT INTO [{band}] VALUES(N'{album}',N'{year}')";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-
-                query = $"CREATE TABLE [{band}_{album}] ([Name] NVARCHAR(50) NOT NULL)";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-            }
-            query = $"SELECT * FROM [{band}_{album}] WHERE Name=N'{song}'";
-            command = new SqlCommand(query, Connection);
-            var songs = new List<string>();
-            try
-            {
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                    songs.Add(reader[0].ToString());
-                reader.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-
-            if (songs.Count == 0)
-            {
-                query = $"INSERT INTO [{band}_{album}] VALUES(N'{song}')";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-                Added();
+                ExecNonQuery($"INSERT INTO BandName VALUES(N'{band}',N'{genre}')");
+                ExecNonQuery($"CREATE TABLE [{band}] ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY , [Genre]NVARCHAR(50) NOT NULL)");
+                bnd = new Band(band, genre);
+                Bands.Add(bnd);
             }
             else
-            {
-                Exists();
-            }
+                bnd = bands.First();
+
+            return bnd;
         }
+
+        static public void AddItem(string song, string album, string band, string year, string genre)
+        {
+            var bnd = GetBandByName(band, genre);
+
+            var alb = bnd.GetAlbumByName(album, year);
+
+            if (alb.InsertSong(band, song))
+                Added();
+            else
+                Exists();
+        }
+
         static public List<string[]> Search(List<string> search)
         {
-            string query = "SELECT * FROM BandName";
-            SqlCommand command = new SqlCommand(query, Connection);
-            List<string[]> bands = new List<string[]>();
             List<string[]> result = new List<string[]>();
-            try
-            {
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                    bands.Add(new string[] { reader[0].ToString(), reader[1].ToString() });
+            foreach (var band in Bands)
+                if ((band.Name.ToUpper().Contains(search[3].ToUpper()) || search[3] == "Введите текст" || search[3].Length == 0)
+                    && (band.Genre.ToUpper().Contains(search[4].ToUpper()) || search[4] == "Введите текст" || search[4].Length == 0))
+                    foreach (var album in band.Albums)
+                        if ((album.Name.ToUpper().Contains(search[1].ToUpper()) || search[1] == "Введите текст" || search[1].Length == 0)
+                            && (album.Year.ToUpper().Contains(search[2].ToUpper()) || search[2] == "Введите текст" || search[2].Length == 0))
+                            foreach (var song in album.Songs)
+                                if (song.Name.ToUpper().Contains(search[0].ToUpper()) || search[0] == "Введите текст" || search[0].Length == 0)
+                                    result.Add(new string[] { song.Name, album.Name, album.Year, band.Name, band.Genre });
 
-                reader.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-
-            foreach (var band in bands)
-            {
-                query = $"SELECT * FROM [{band[0]}]";
-                command = new SqlCommand(query, Connection);
-                List<string[]> albums = new List<string[]>();
-                try
-                {
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                        albums.Add(new string[] { reader[0].ToString(), reader[1].ToString() });
-
-                    reader.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw;
-                }
-
-                foreach (var album in albums)
-                {
-                    query = $"SELECT * FROM [{band[0]}_{album[0]}]";
-                    command = new SqlCommand(query, Connection);
-                    List<string> songs = new List<string>();
-
-                    try
-                    {
-                        SqlDataReader reader = command.ExecuteReader();
-                        while (reader.Read())
-                            songs.Add(reader[0].ToString());
-
-                        reader.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        throw;
-                    }
-                    foreach (var song in songs)
-                        if ((song.ToUpper().Contains(search[0].ToUpper()) || search[0] == "Введите текст" || search[0].Length == 0)
-                            && (album[0].ToUpper().Contains(search[1].ToUpper()) || search[1] == "Введите текст" || search[1].Length == 0)
-                            && (album[1].ToUpper().Contains(search[2].ToUpper()) || search[2] == "Введите текст" || search[2].Length == 0)
-                            && (band[0].ToUpper().Contains(search[3].ToUpper()) || search[3] == "Введите текст" || search[3].Length == 0)
-                            && (band[1].ToUpper().Contains(search[4].ToUpper()) || search[4] == "Введите текст" || search[4].Length == 0))
-                            result.Add(new string[] { song, album[0], album[1], band[0], band[1] });
-                }
-            }
             return result;
         }
+
+
+        #region DELETE
         static public void DeleteSong(List<string> list)
         {
-            string query = $"DELETE FROM [{list[0]}_{list[1]}] WHERE Name=N'{list[2]}'";
-            SqlCommand command = new SqlCommand(query, Connection);
-            command.ExecuteNonQuery();
+            var band = Bands.Where(x => x.Name.ToUpper() == list[0].ToUpper()).First();
+            var album = band.ReturnAlbum(list[1]);
+            if (album.DeleteSong(list[0], list[2]) == 0)
+                if (band.DeleteAlbum(list[1]) == 0)
+                    DeleteBand(band);
 
-            query = $"SELECT * FROM [{list[0]}_{list[1]}]";
-            command = new SqlCommand(query, Connection);
-
-            try
-            {
-                List<string> songs = new List<string>();
-                using (SqlDataReader reader = command.ExecuteReader())
-                    while (reader.Read())
-                        songs.Add(reader[0].ToString());
-
-                if (songs.Count == 0)
-                    DeleteAlbum(new List<string> { list[0], list[1] });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
         }
-        static public void DeleteAlbum(List<string> list)
+
+        static public void DeleteAlbum(string band, string album)
         {
-            string query = $"DROP TABLE {list[0]}_{list[1]}";
-            SqlCommand command = new SqlCommand(query, Connection);
-            command.ExecuteNonQuery();
-
-            query = $"DELETE FROM [{list[0]}] WHERE Name=N'{list[1]}'";
-            command = new SqlCommand(query, Connection);
-            command.ExecuteNonQuery();
-
-            query = $"SELECT * FROM [{list[0]}]";
-            command = new SqlCommand(query, Connection);
-            try
-            {
-                List<string> albums = new List<string>();
-                using (SqlDataReader reader = command.ExecuteReader())
-                    while (reader.Read())
-                        albums.Add(reader[0].ToString());
-
-                if (albums.Count == 0)
-                {
-                    query = $"DELETE FROM BandName WHERE Band=N'{list[0]}'";
-                    command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-
-                    query = $"DROP TABLE [{list[0]}]";
-                    command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
+            var bnd = Bands.Where(x => x.Name.ToUpper() == band.ToUpper()).First();
+            bnd.DeleteAlbum(album);
         }
+
+        static public void DeleteBand(Band band)
+        {
+            foreach (var alb in band.Albums)
+                ExecNonQuery($"DROP TABLE [{band.Name}_{alb.Name}]");
+            Bands.Remove(band);
+            ExecNonQuery($"DELETE FROM BandName WHERE Band=N'{band.Name}'");
+            ExecNonQuery($"DROP TABLE [{band.Name}]");
+        }
+        
         static public void DeleteBand(string band)
         {
-            string query = $"SELECT * FROM [{band}]";
-            SqlCommand command = new SqlCommand(query, Connection);
-            try
-            {
-                List<string> albums = new List<string>();
-
-                using (SqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                        albums.Add(reader[0].ToString());
-                }
-
-                foreach (var album in albums)
-                    DeleteAlbum(new List<string> { band, album });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
+            var bnd = Bands.Where(x => x.Name.ToUpper() == band.ToUpper()).First();
+            DeleteBand(bnd);
         }
+        #endregion
+
         static public void ChangeSong(List<string> before, List<string> after)
         {
             DeleteSong(new List<string> { before[3], before[1], before[0] });
-            int.TryParse(after[2], out int year);
-            AddItem(after[0], after[1], after[3], year, after[4]);
+            AddItem(after[0], after[1], after[3], after[2], after[4]);
         }
+
+
+        
+
         static public void ChangeAlbum(List<string> before, List<string> after)
+        {
+            Band bandBefore = null;
+            Band bandAfter = null;
+
+            bandBefore = GetBandByName(before[3], before[4]);
+
+            if (before[3] != after[3])
+                bandAfter = GetBandByName(after[3], after[4]);
+            else
+                bandAfter = bandBefore;
+        }
+
+
+        /*static public void ChangeAlbum(List<string> before, List<string> after)
         {
             string query = $"SELECT * FROM [{before[3]}_{before[1]}]";
             SqlCommand command = new SqlCommand(query, Connection);
@@ -421,8 +234,8 @@ namespace MusicLibrary
                 command = new SqlCommand(query, Connection);
                 command.ExecuteNonQuery();
             }
-        }
-        static public void ChangeBand(List<string> before, List<string> after)
+        }*/
+        /*static public void ChangeBand(List<string> before, List<string> after)
         {
             List<string[]> albums = new List<string[]>();
             string query = $"SELECT * FROM [{before[3]}]";
@@ -498,7 +311,8 @@ namespace MusicLibrary
                 command.ExecuteNonQuery();
             }
 
-        }
+        }*/
+
         //messages
         static public void Added()
         {
@@ -519,17 +333,14 @@ namespace MusicLibrary
            );
         }
 
-
-
-
         //save
-        static public void SaveToFile(List<string[]> list, bool filtered = false, List<string> filters = null)
+        static public void SaveToFile(List<Band> list, bool filtered = false, List<string> filters = null)
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.DefaultExt = ".txt";
             dialog.Filter = "Text file*|.txt";
             dialog.ShowDialog();
-            if (dialog.FileName.Length > 4)
+            if (dialog.FileName.Length > 1)
             {
                 using (StreamWriter wr = new StreamWriter(dialog.FileName))
                 {
@@ -545,8 +356,11 @@ namespace MusicLibrary
 
 
                     wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
-                    foreach (var song in list)
-                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}", song[0], song[1], song[2], song[3], song[4]);
+                    foreach(var band in list)
+                        foreach(var album in band.Albums)
+                            foreach (var song in album.Songs)
+                                wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                                            song.Name, album.Name, album.Year, band.Name, band.Genre);
                 }
                 MessageBox.Show(
                    "Файл сохранен",
@@ -557,6 +371,42 @@ namespace MusicLibrary
             }
 
         }
+        static public void SaveToFile(List<string[]> list, bool filtered = false, List<string> filters = null)
+        {
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.DefaultExt = ".txt";
+            dialog.Filter = "Text file*|.txt";
+            dialog.ShowDialog();
+            if (dialog.FileName.Length > 1)
+            {
+                using (StreamWriter wr = new StreamWriter(dialog.FileName))
+                {
+                    if (filtered && filters != null)
+                    {
+                        wr.WriteLine("Фильтры:");
+                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                            "Песня", "Альбом", "Год", "Автор", "Жанр");
+
+                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n\n",
+                            filters[0], filters[1], filters[2], filters[3], filters[4]);
+                    }
+
+
+                    wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
+                    foreach (var str in list)
+                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                                    str[0], str[1], str[2], str[3], str[4]);                
+                }
+                MessageBox.Show(
+                   "Файл сохранен",
+                   "Сообщение",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                    );
+            }
+
+        }
+
 
         static public void ClearDatabase()
         {
@@ -576,48 +426,34 @@ namespace MusicLibrary
                         );
                 if (result == DialogResult.Yes)
                 {
-                    string query = $"TRUNCATE TABLE Bandname";
-                    SqlCommand command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-
-
                     List<string> tables = new List<string>();
-                    query = "SELECT* FROM sysobjects WHERE name != 'Bandname' and xtype = 'U'";
-                    command = new SqlCommand(query, Connection);
-                    try
+                    List<string> bands = new List<string>(ListStringRead("SELECT * FROM Bandname"));
+                    tables.AddRange(bands);
+                    
+                    foreach(var band in bands)
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
-                            while (reader.Read())
-                                tables.Add(reader[0].ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        throw;
+                        List<string> albums = new List<string>();
+                        albums.AddRange(ListStringRead($"SELECT * FROM [{band}]"));
+
+                        foreach (var album in albums)
+                            tables.Add($"{band}_{album}");
                     }
 
                     foreach (var table in tables)
-                    {
-                        query = $"DROP TABLE [{table}]";
-                        command = new SqlCommand(query, Connection);
-                        command.ExecuteNonQuery();
-                    }
+                        ExecNonQuery($"DROP TABLE [{table}]");
+
                     MessageBox.Show(
                        "База данных очищена",
                        "Сообщение",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information
                         );
+
+                    ExecNonQuery($"TRUNCATE TABLE Bandname");
+                    Bands.Clear();
                 }
             }
         }
-
-
-
-
-
-
-
 
 
         ///////////////////
@@ -652,7 +488,8 @@ namespace MusicLibrary
         {
             using (SqlConnection connection = new SqlConnection(ConnectionStr))
             {
-                SqlCommand command = new SqlCommand(query);
+                connection.Open();
+                SqlCommand command = new SqlCommand(query, connection);
                 try
                 {
                     command.ExecuteNonQuery();
@@ -662,7 +499,56 @@ namespace MusicLibrary
                     MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     throw;
                 }
+                connection.Close();
             }
+        }
+        static List<string[]> ListStringArrayRead(string query)
+        {
+            List<string[]> list = new List<string[]>();
+            using (SqlConnection connection = new SqlConnection(ConnectionStr))
+            {
+                connection.Open();
+                SqlCommand command = new SqlCommand(query, connection);
+                try
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            list.Add(new string[] { reader[0].ToString(), reader[1].ToString() });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw;
+                }
+                connection.Close();
+            }
+            return list;
+        }
+        static List<string> ListStringRead(string query)
+        {
+            List<string> list = new List<string>();
+            using (SqlConnection connection = new SqlConnection(ConnectionStr))
+            {
+                connection.Open();
+                SqlCommand command = new SqlCommand(query, connection);
+                try
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            list.Add(reader[0].ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw;
+                }
+                connection.Close();
+            }
+            return list;
         }
     }
 }

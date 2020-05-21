@@ -21,7 +21,7 @@ namespace MusicLibrary
         }
         private void MusicLibrary_Load(object sender, EventArgs e)
         {
-            Library.Open();
+            Library.LoadDatabase();
             FullPrint();
             edit = null;
             add = null;
@@ -48,7 +48,7 @@ namespace MusicLibrary
         public void FullPrint()
         {
             dataGridView1.Rows.Clear();
-            PrintFromList(Library.FullDatabase());
+            PrintFromBandList(Library.FullDatabase());
 
             SearchNameBox.Text = "Введите текст";
             SearchAlbumBox.Text = "Введите текст";
@@ -56,12 +56,21 @@ namespace MusicLibrary
             SearchYearBox.Text = "Введите текст";
             SearchGenreBox.Text = "Введите текст";
         }
-        private void PrintFromList(List<string[]> list)
+        private void PrintFromBandList(List<Band> list)
         {
             dataGridView1.Rows.Clear();
             if (list != null)
-                foreach (var str in list)
-                    dataGridView1.Rows.Add(str);
+                foreach (var band in list)
+                    foreach (var album in band.Albums)
+                        foreach (var song in album.Songs)
+                            dataGridView1.Rows.Add(new string[] { song.Name, album.Name, album.Year, band.Name, band.Genre });
+        }
+
+        private void PrintFromList(List<string[]> list)
+        {
+            dataGridView1.Rows.Clear();
+            foreach (var row in list)
+                dataGridView1.Rows.Add(row);
         }
         //add
         private void AddSong_Click(object sender, EventArgs e)
@@ -118,11 +127,10 @@ namespace MusicLibrary
                     );
                 if (result == DialogResult.Yes)
                 {
-                    Library.DeleteAlbum(new List<string>
-                        {
+                    Library.DeleteAlbum(
                             dataGridView1.SelectedRows[0].Cells[3].Value.ToString(),
-                            dataGridView1.SelectedRows[0].Cells[1].Value.ToString(),
-                        });
+                            dataGridView1.SelectedRows[0].Cells[1].Value.ToString()
+                        );
                     MessageBox.Show(
                         "Альбом удален",
                         "Сообщение",
@@ -179,6 +187,8 @@ namespace MusicLibrary
             PrintFromList(Library.Search(list));
         }
 
+
+        #region BOXFOCUS
         private void Lost(TextBox box)
         {
             if (box.TextLength == 0)
@@ -190,6 +200,7 @@ namespace MusicLibrary
             if (box.Text == "Введите текст")
                 box.Text = "";
         }
+
 
         private void SearchNameBox_Enter(object sender, EventArgs e)
         {
@@ -242,9 +253,11 @@ namespace MusicLibrary
             Lost(SearchGenreBox);
         }
 
+        #endregion
+
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Library.Close();
+           
         }
 
         private bool CheckOpened(string name)
@@ -263,19 +276,22 @@ namespace MusicLibrary
 
         private void EditSong_Click(object sender, EventArgs e)
         {
-            List<string> list = new List<string>();
-            for (int i = 0; i < 5; ++i)
-                list.Add(dataGridView1.SelectedRows[0].Cells[i].Value.ToString());
-            if (edit == null || edit.Text == "")
+            if (NotEmpty())
             {
-                edit = new EditSong();
-                edit.Show();
-                edit.Edit(list, this);
-            }
-            else if (CheckOpened(edit.Text))
-            {
-                edit.WindowState = FormWindowState.Normal;
-                edit.Focus();
+                List<string> list = new List<string>();
+                for (int i = 0; i < 5; ++i)
+                    list.Add(dataGridView1.SelectedRows[0].Cells[i].Value.ToString());
+                if (edit == null || edit.Text == "")
+                {
+                    edit = new EditSong();
+                    edit.Show();
+                    edit.Edit(list, this);
+                }
+                else if (CheckOpened(edit.Text))
+                {
+                    edit.WindowState = FormWindowState.Normal;
+                    edit.Focus();
+                }
             }
         }
 
@@ -301,7 +317,8 @@ namespace MusicLibrary
 
         private void очиститьБазуДанныхToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Library.ClearDatabase();
+            Library.ClearDatabase(); 
+            FullPrint();
         }
 
         private void оПрограммеToolStripMenuItem_Click(object sender, EventArgs e)

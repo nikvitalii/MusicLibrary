@@ -113,7 +113,7 @@ namespace MusicLibrary
         {
             if (Valid())
             {
-                Library.AddItem(SongName.Text, Album.Text, Band.Text, int.Parse(Year.Text), Genre.Text);
+                Library.AddItem(SongName.Text, Album.Text, Band.Text, Year.Text, Genre.Text);
             }
         }
 

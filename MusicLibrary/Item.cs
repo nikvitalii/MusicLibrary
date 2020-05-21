@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MusicLibrary
 {
-    abstract class Item
+    abstract public class Item
     {
         public string Name;
 
