@@ -15,10 +15,12 @@ namespace MusicLibrary
     {
         AddSong add;
         EditSong edit;
+
         public Main()
         {
             InitializeComponent();
         }
+
         private void MusicLibrary_Load(object sender, EventArgs e)
         {
             Library.LoadDatabase();
@@ -39,7 +41,7 @@ namespace MusicLibrary
                 Close();
         }
 
-        //print
+        #region PRINT
         private void PrintButton_Click(object sender, EventArgs e)
         {
             FullPrint();
@@ -72,21 +74,9 @@ namespace MusicLibrary
             foreach (var row in list)
                 dataGridView1.Rows.Add(row);
         }
-        //add
-        private void AddSong_Click(object sender, EventArgs e)
-        {
-            if (add == null || add.Text == "")
-            {
-                add = new AddSong();
-                add.Show();
-            }
-            else if (CheckOpened(edit.Text))
-            {
-                add.WindowState = FormWindowState.Normal;
-                add.Focus();
-            }
-        }
-        //delete
+    #endregion
+
+        #region DELETE
         private void DeleteSong_Click(object sender, EventArgs e)
         {
             if (NotEmpty())
@@ -115,6 +105,7 @@ namespace MusicLibrary
                 }
             }
         }
+
         private void DeleteAlbum_Click(object sender, EventArgs e)
         {
             if (NotEmpty())
@@ -141,6 +132,7 @@ namespace MusicLibrary
                 }
             }
         }
+
         private void DeleteBand_Click(object sender, EventArgs e)
         {
             if (NotEmpty())
@@ -179,14 +171,7 @@ namespace MusicLibrary
             }
             return true;
         }
-
-        //search
-        private void SearchBox_TextChanged(object sender, EventArgs e)
-        {
-            List<string> list = new List<string> { SearchNameBox.Text, SearchAlbumBox.Text, SearchYearBox.Text, SearchBandBox.Text, SearchGenreBox.Text };
-            PrintFromList(Library.Search(list));
-        }
-
+        #endregion
 
         #region BOXFOCUS
         private void Lost(TextBox box)
@@ -200,7 +185,6 @@ namespace MusicLibrary
             if (box.Text == "Введите текст")
                 box.Text = "";
         }
-
 
         private void SearchNameBox_Enter(object sender, EventArgs e)
         {
@@ -252,8 +236,26 @@ namespace MusicLibrary
         {
             Lost(SearchGenreBox);
         }
-
         #endregion
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            List<string> list = new List<string> { SearchNameBox.Text, SearchAlbumBox.Text, SearchYearBox.Text, SearchBandBox.Text, SearchGenreBox.Text, ComparisonButton.Text};
+            PrintFromList(Library.Search(list));
+        }
+
+        private void AddSong_Click(object sender, EventArgs e)
+        {
+            if (add == null || add.Text == "")
+            {
+                add = new AddSong();
+                add.Show();
+            }
+            else if (CheckOpened(edit.Text))
+            {
+                add.WindowState = FormWindowState.Normal;
+                add.Focus();
+            }
+        }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -295,7 +297,6 @@ namespace MusicLibrary
             }
         }
 
-
         private void сохранитьКакToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
             Library.SaveToFile(Library.FullDatabase());
@@ -325,6 +326,16 @@ namespace MusicLibrary
         {
             About about = new About();
             about.Show();
+        }
+
+        private void ComparisonButton_Click(object sender, EventArgs e)
+        {
+            if (ComparisonButton.Text == "=")
+                ComparisonButton.Text = ">=";
+            else if (ComparisonButton.Text == ">=")
+                ComparisonButton.Text = "<=";
+            else
+                ComparisonButton.Text = "=";
         }
     }
 }

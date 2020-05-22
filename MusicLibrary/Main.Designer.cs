@@ -62,6 +62,7 @@
             this.очиститьБазуДанныхToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.выходToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ComparisonButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.libraryBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.musicCollectionBindingSource)).BeginInit();
@@ -367,11 +368,22 @@
             this.оПрограммеToolStripMenuItem.Text = "О программе";
             this.оПрограммеToolStripMenuItem.Click += new System.EventHandler(this.оПрограммеToolStripMenuItem_Click);
             // 
+            // ComparisonButton
+            // 
+            this.ComparisonButton.Location = new System.Drawing.Point(686, 116);
+            this.ComparisonButton.Name = "ComparisonButton";
+            this.ComparisonButton.Size = new System.Drawing.Size(31, 23);
+            this.ComparisonButton.TabIndex = 19;
+            this.ComparisonButton.Text = "=";
+            this.ComparisonButton.UseVisualStyleBackColor = true;
+            this.ComparisonButton.Click += new System.EventHandler(this.ComparisonButton_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(729, 432);
+            this.Controls.Add(this.ComparisonButton);
             this.Controls.Add(this.EditSong);
             this.Controls.Add(this.SearchGenre);
             this.Controls.Add(this.SearchBand);
@@ -445,6 +457,7 @@
         private System.Windows.Forms.ToolStripMenuItem очиститьБазуДанныхToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem выходToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem оПрограммеToolStripMenuItem;
+        private System.Windows.Forms.Button ComparisonButton;
     }
 }
 

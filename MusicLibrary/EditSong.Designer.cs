@@ -103,7 +103,6 @@
             this.SearchName.TabIndex = 26;
             this.SearchName.Text = "Название";
             this.SearchName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.SearchName.Show();
             // 
             // GenreBefore
             // 
@@ -225,7 +224,7 @@
             // AlbumChange
             // 
             this.AlbumChange.AutoSize = true;
-            this.AlbumChange.Location = new System.Drawing.Point(253, 21);
+            this.AlbumChange.Location = new System.Drawing.Point(115, 21);
             this.AlbumChange.Name = "AlbumChange";
             this.AlbumChange.Size = new System.Drawing.Size(71, 17);
             this.AlbumChange.TabIndex = 29;
@@ -237,14 +236,13 @@
             // BandChange
             // 
             this.BandChange.AutoSize = true;
-            this.BandChange.Location = new System.Drawing.Point(115, 21);
+            this.BandChange.Location = new System.Drawing.Point(232, 21);
             this.BandChange.Name = "BandChange";
             this.BandChange.Size = new System.Drawing.Size(97, 17);
             this.BandChange.TabIndex = 29;
             this.BandChange.TabStop = true;
             this.BandChange.Text = "исполнителю";
             this.BandChange.UseVisualStyleBackColor = true;
-            this.BandChange.Visible = false;
             this.BandChange.CheckedChanged += new System.EventHandler(this.BandChange_CheckedChanged);
             // 
             // RadioBox

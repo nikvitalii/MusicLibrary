@@ -12,12 +12,12 @@ namespace MusicLibrary
 {
     public partial class EditSong : Form
     {
+        private bool Changed;
         private Main Form;
         private List<string> Before;
         public EditSong()
         {
             InitializeComponent();
-            BandChange.Enabled = false;
         }
 
         public void Edit(List<string> list, Main form)
@@ -36,7 +36,9 @@ namespace MusicLibrary
             YearAfter.Text = Before[2];
             BandAfter.Text = Before[3];
             GenreAfter.Text = Before[4];
+            Changed = false;
         }
+
         private void ChangeTB()
         {
             NameBefore.Text = NameAfter.Text;
@@ -51,17 +53,22 @@ namespace MusicLibrary
             Before[3] = BandAfter.Text;
             Before[4] = GenreAfter.Text;
         }
+
         private void Cancel_Click(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show(
-                      $"Вы действительно хотите выйти?",
-                      "Подтвердите действие",
-                      MessageBoxButtons.YesNo,
-                      MessageBoxIcon.Question
-                      );
-            if (result == DialogResult.Yes)
-                Close();
+            if (!Changed)
+            {
+                DialogResult result = MessageBox.Show(
+                          $"Вы действительно хотите выйти без изменений?",
+                          "Подтвердите действие",
+                          MessageBoxButtons.YesNo,
+                          MessageBoxIcon.Question
+                          );
+                if (result == DialogResult.Yes)
+                    Close();
+            }
         }
+
         private bool Valid(List<string> fields)
         {
             bool parsed = int.TryParse(YearAfter.Text, out int n);
@@ -114,20 +121,40 @@ namespace MusicLibrary
             return true;
         }
 
+        private bool NotEqual()
+        {
+            if (
+                NameBefore.Text != NameAfter.Text ||
+                AlbumBefore.Text != AlbumAfter.Text ||
+                YearBefore.Text != YearAfter.Text ||
+                BandBefore.Text != BandAfter.Text ||
+                GenreBefore.Text != GenreAfter.Text
+            )
+                return true;
+            MessageBox.Show(
+                "Значения до и после должны отличаться",
+                "Ошибка",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+                );
+            return false;
+        }
+
         private void Save_Click(object sender, EventArgs e)
         {
             List<string> list = new List<string> { NameAfter.Text, AlbumAfter.Text, YearAfter.Text, BandAfter.Text, GenreAfter.Text };
-            if (Valid(list))
-            {
-                if (SongChange.Checked)
-                    Library.ChangeSong(Before, list);
-                else if (AlbumChange.Checked)
-                    Library.ChangeAlbum(Before, list);
-                /*else if (BandChange.Checked)
-                    Library.ChangeBand(Before, list);*/
-                ChangeTB();
-                Form.FullPrint();
-            }
+            if (NotEqual())
+                if (Valid(list))
+                {
+                    if (SongChange.Checked)
+                        Library.ChangeSong(Before, list);
+                    else if (AlbumChange.Checked)
+                        Library.ChangeAlbum(Before, list);
+                    else if (BandChange.Checked)
+                        Library.ChangeBand(Before, list);
+                    ChangeTB();
+                    Form.FullPrint();
+                }
         }
 
         private void Reset_Click(object sender, EventArgs e)

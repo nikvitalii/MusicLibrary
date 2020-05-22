@@ -44,16 +44,15 @@ namespace MusicLibrary
             return Bands;
         }
 
-
         static public Band GetBandByName(string band, string genre)
         {
-            var bands = Bands.Where(x => x.Name.ToUpper() == band.ToUpper());
+            var bands = Bands.Where(x => (x.Name.ToUpper() == band.ToUpper() && x.Genre.ToUpper() == genre.ToUpper()));
             Band bnd;
 
             if (bands.Count() == 0)
             {
                 ExecNonQuery($"INSERT INTO BandName VALUES(N'{band}',N'{genre}')");
-                ExecNonQuery($"CREATE TABLE [{band}] ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY , [Genre]NVARCHAR(50) NOT NULL)");
+                ExecNonQuery($"CREATE TABLE [{band}] ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY , [Year]NVARCHAR(50) NOT NULL)");
                 bnd = new Band(band, genre);
                 Bands.Add(bnd);
             }
@@ -83,7 +82,11 @@ namespace MusicLibrary
                     && (band.Genre.ToUpper().Contains(search[4].ToUpper()) || search[4] == "Введите текст" || search[4].Length == 0))
                     foreach (var album in band.Albums)
                         if ((album.Name.ToUpper().Contains(search[1].ToUpper()) || search[1] == "Введите текст" || search[1].Length == 0)
-                            && (album.Year.ToUpper().Contains(search[2].ToUpper()) || search[2] == "Введите текст" || search[2].Length == 0))
+                            && (search[2] == "Введите текст" || search[2].Length == 0
+                                || (int.TryParse(search[2], out int year)
+                                    && ((search[5] == "=" && year == int.Parse(album.Year))
+                                        || (search[5] == ">=" && year >= int.Parse(album.Year))
+                                        || (search[5] == "<=" && year <= int.Parse(album.Year))))))
                             foreach (var song in album.Songs)
                                 if (song.Name.ToUpper().Contains(search[0].ToUpper()) || search[0] == "Введите текст" || search[0].Length == 0)
                                     result.Add(new string[] { song.Name, album.Name, album.Year, band.Name, band.Genre });
@@ -104,8 +107,7 @@ namespace MusicLibrary
         static public void DeleteAlbum(string band, string album)
         {
             var bnd = Bands.Where(x => x.Name.ToUpper() == band.ToUpper()).First();
-            if (bnd.DeleteAlbum(album) == 0)
-                DeleteBand(band);
+            bnd.DeleteAlbum(album);
         }
 
 
@@ -114,7 +116,7 @@ namespace MusicLibrary
             foreach (var alb in band.Albums)
                 ExecNonQuery($"DROP TABLE [{band.Name}_{alb.Name}]");
             Bands.Remove(band);
-            ExecNonQuery($"DELETE FROM BandName WHERE Band=N'{band.Name}'");
+            ExecNonQuery($"DELETE FROM BandName WHERE (Band=N'{band.Name}' and Genre = N'{band.Genre}')");
             ExecNonQuery($"DROP TABLE [{band.Name}]");
         }
         
@@ -125,6 +127,7 @@ namespace MusicLibrary
         }
         #endregion
 
+        #region CHANGE
         static public void ChangeSong(List<string> before, List<string> after)
         {
             DeleteSong(new List<string> { before[3], before[1], before[0] });
@@ -145,197 +148,22 @@ namespace MusicLibrary
             else
             {
                 Album alb = bandBefore.GetAlbumByName(before[1], before[2]);
-                bandAfter.ChangeAlbum(before, after, alb);
+                bandAfter.ChangeAlbum(before, after, alb, bandBefore);
             }
         }
 
-
-        /*static public void ChangeAlbum(List<string> before, List<string> after)
+        static public void ChangeBand(List<string> before, List<string> after)
         {
-            string query = $"SELECT * FROM [{before[3]}_{before[1]}]";
-            SqlCommand command = new SqlCommand(query, Connection);
-            List<string> songs = new List<string>();
-            try
-            {
-                using (SqlDataReader reader = command.ExecuteReader())
-                    while (reader.Read())
-                        songs.Add(reader[0].ToString());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-            if (before[3] != after[3])
-            {
-                query = $"IF NOT EXISTS(SELECT * FROM Bandname WHERE Band=N'{after[3]}') " +
-                        $" BEGIN " +
-                        $"CREATE TABLE [{after[3]}] ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY , [Year]NVARCHAR(50) NOT NULL);" +
-                        $"INSERT INTO BandName VALUES (N'{after[3]}', N'{after[4]}')" +
-                        $" END";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-
-                query = $"IF NOT EXISTS(SELECT * FROM [{after[3]}] WHERE Name=N'{after[1]}')" +
-                        $" BEGIN " +
-                        $" EXEC sp_rename [{before[3]}_{before[1]}] ,[{after[3]}_{after[1]}];" +
-                        $" INSERT INTO [{after[3]}] VALUES (N'{after[1]}', N'{after[2]}')" +
-                        $" END";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-
-                query = $"IF NOT EXISTS(SELECT * FROM [{before[3]}] WHERE Name != N'{before[1]}')" +
-                        $" BEGIN " +
-                        $"DROP TABLE [{before[3]}];" +
-                        $"DELETE FROM Bandname WHERE Band=N'{before[3]}'" +
-                        $" END";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-
-                foreach (var song in songs)
-                {
-                    query = $"IF NOT EXISTS(SELECT * FROM [{after[3]}_{after[1]}] WHERE Name='{song}')" +
-                            $"INSERT INTO [{after[3]}_{after[1]}] VALUES (N'{song}')";
-                    command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-                }
-
-                query = $"IF EXISTS(SELECT * FROM sysobjects WHERE name='{before[3]}_{before[1]}' and xtype='U') " +
-                        $" BEGIN " +
-                        $"DROP TABLE [{before[3]}_{before[1]}];" +
-                        $" END";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-            }
-            else if (before[1] != after[1])
-            {
-                query = $"IF NOT EXISTS(SELECT * FROM [{after[3]}] WHERE Name=N'{after[1]}')" +
-                        $" BEGIN " +
-                        $" EXEC sp_rename [{before[3]}_{before[1]}] ,[{after[3]}_{after[1]}];" +
-                        $" INSERT INTO [{after[3]}] VALUES (N'{after[1]}', N'{after[2]}')" +
-                        $" DELETE FROM [{before[3]}] WHERE Name = N'{before[1]}'" +
-                        $" END";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-
-                foreach (var song in songs)
-                {
-                    query = $"IF NOT EXISTS(SELECT * FROM [{after[3]}_{after[1]}] WHERE Name='{song}')" +
-                            $"INSERT INTO [{after[3]}_{after[1]}] VALUES (N'{song}')";
-                    command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-                }
-            }
-            if (before[2] != after[2])
-            {
-                query = $"IF EXISTS(SELECT * FROM [{after[3]}] WHERE Name=N'{after[1]}')" +
-                        $" BEGIN " +
-                        $" DELETE FROM [{after[3]}] WHERE Name = N'{after[1]}'" +
-                        $" INSERT INTO [{after[3]}] VALUES (N'{after[1]}', N'{after[2]}')" +
-                        $" END";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-            }
-        }*/
-        /*static public void ChangeBand(List<string> before, List<string> after)
-        {
-            List<string[]> albums = new List<string[]>();
-            string query = $"SELECT * FROM [{before[3]}]";
-            SqlCommand command = new SqlCommand(query, Connection);
-            try
-            {
-                using (SqlDataReader reader = command.ExecuteReader())
-                    while (reader.Read())
-                        albums.Add(new string[] { reader[0].ToString(), reader[1].ToString() });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-            if (before[3] != after[3])
-            {
-                query = $"IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{after[3]}') " +
-                            $" BEGIN " +
-                            $" CREATE TABLE '{after[3]}' ([Name] NVARCHAR(50) NOT NULL PRIMARY KEY , [Genre]NVARCHAR(50) NOT NULL)" +
-                            $" DELETE FROM Bandname WHERE Band=N'{before[3]}'" +
-
-                            $" INSERT INTO BandName VALUES (N'{after[3]}', N'{after[4]}')" +
-                            $" END";
-                new SqlCommand(query, Connection);
-
-                foreach (var album in albums)
-                {
-                    query = $"SELECT * FROM [{before[3]}_{album[0]}]";
-                    command = new SqlCommand(query, Connection);
-                    List<string> songs = new List<string>();
-                    try
-                    {
-                        using (SqlDataReader reader = command.ExecuteReader())
-                            while (reader.Read())
-                                songs.Add(reader[0].ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message.ToString(), ex.Source.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        throw;
-                    }
-
-                    query = $"IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{after[3]}_{album[0]}' and xtype='U') " +
-                            $" BEGIN " +
-                            $" DROP TABLE [{before[3]}_{album[0]}]" +
-                            $" CREATE TABLE [{after[3]}_{album[0]}] ([Name] NVARCHAR(50) NOT NULL)" +
-                            $" INSERT INTO [{after[3]}] VALUES (N'{album[0]}', N'{album[1]}')" +
-                            $" END";
-                    command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-
-                    foreach (var song in songs)
-                    {
-                        query = $"IF NOT EXISTS(SELECT * FROM [{after[3]}_{album[0]}] WHERE Name='{song}')" +
-                                $"INSERT INTO [{after[3]}_{album[0]}] VALUES (N'{song}')";
-                        command = new SqlCommand(query, Connection);
-                        command.ExecuteNonQuery();
-                    }
-                    query = $"IF EXISTS(SELECT * FROM sysobjects WHERE name='{before[3]}_{album[0]}' and xtype='U')" +
-                            $"DROP TABLE [{before[3]}_{album[0]}]";
-                    command = new SqlCommand(query, Connection);
-                    command.ExecuteNonQuery();
-                }
-                query = $"IF EXISTS(SELECT * FROM sysobjects WHERE name='{before[3]}' and xtype='U')" +
-                        $"DROP TABLE [{before[3]}]";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-
-                query = $"IF EXISTS(SELECT * FROM Bandname WHERE Band={before[3]})" +
-                        $"DELETE FROM Bandname WHERE Band = {before[3]}";
-                command = new SqlCommand(query, Connection);
-                command.ExecuteNonQuery();
-            }
-
-        }*/
-
-        //messages
-        static public void Added()
-        {
-            MessageBox.Show(
-                "Песня добавлена в коллекцию",
-                "Сообщение",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            var bandBefore = GetBandByName(before[3], before[4]);
+            for(int i = bandBefore.Albums.Count; i > 0; --i)
+                ChangeAlbum(
+                    new List<string> { before[0], bandBefore.Albums[0].Name, bandBefore.Albums[0].Year, before[3], before[4] },
+                    new List<string> { after[0], bandBefore.Albums[0].Name, bandBefore.Albums[0].Year, after[3], after[4] }
+                    );
         }
-        static public void Exists()
-        {
-            MessageBox.Show(
-               "Песня уже есть в коллекции",
-               "Ошибка",
-               MessageBoxButtons.OK,
-               MessageBoxIcon.Error
-           );
-        }
+        #endregion
 
-        //save
+        #region SAVE
         static public void SaveToFile(List<Band> list, bool filtered = false, List<string> filters = null)
         {
             SaveFileDialog dialog = new SaveFileDialog();
@@ -408,6 +236,8 @@ namespace MusicLibrary
             }
 
         }
+        #endregion
+
         static public void ClearDatabase()
         {
             DialogResult result = MessageBox.Show(
@@ -455,7 +285,7 @@ namespace MusicLibrary
             }
         }
 
-
+        #region QUERIES
         static public void ExecNonQuery(string query)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionStr))
@@ -522,5 +352,27 @@ namespace MusicLibrary
             }
             return list;
         }
+        #endregion
+
+        #region MESSAGES
+        static public void Added()
+        {
+            MessageBox.Show(
+                "Песня добавлена в коллекцию",
+                "Сообщение",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+        }
+        static public void Exists()
+        {
+            MessageBox.Show(
+               "Песня уже есть в коллекции",
+               "Ошибка",
+               MessageBoxButtons.OK,
+               MessageBoxIcon.Error
+           );
+        }
+        #endregion
     }
 }

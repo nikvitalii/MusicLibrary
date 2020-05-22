@@ -24,7 +24,7 @@ namespace MusicLibrary
         public Album GetAlbumByName(string album, string year)
         {
             Album alb;
-            var albums = Albums.Where(x => x.Name.ToUpper() == album.ToUpper());
+            var albums = Albums.Where(x => (x.Name.ToUpper() == album.ToUpper() && x.Year == year));
 
             if (albums.Count() == 0)
             {
@@ -54,16 +54,14 @@ namespace MusicLibrary
 
         public void DeleteAlbum(Album alb)
         {
-            Library.ExecNonQuery($"DELETE FROM [{Name}] WHERE Name=N'{alb.Name}'");
+            Library.ExecNonQuery($"DELETE FROM [{Name}] WHERE (Name=N'{alb.Name}' and Year=N'{alb.Year}')");
             Library.ExecNonQuery($"DROP TABLE [{Name}_{alb.Name}]");
             Albums.Remove(alb);
             if (Albums.Count == 0)
                 Library.DeleteBand(this);
         }
 
-
-
-        public void ChangeAlbum(List<string> before, List<string> after, Album albumBefore = null)
+        public void ChangeAlbum(List<string> before, List<string> after, Album albumBefore = null, Band bandBefore = null)
         {
             if(albumBefore == null)
                 albumBefore = GetAlbumByName(before[1], before[2]);
@@ -71,9 +69,11 @@ namespace MusicLibrary
             var albumAfter = GetAlbumByName(after[1], after[2]);
 
             albumAfter.CopyFrom(Name, albumBefore);
-            DeleteAlbum(albumBefore);
+
+            if (bandBefore != null)
+                bandBefore.DeleteAlbum(albumBefore);
+            else
+                DeleteAlbum(albumBefore);
         }
-
-
     }
 }
