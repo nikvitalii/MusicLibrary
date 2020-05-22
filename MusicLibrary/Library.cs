@@ -85,8 +85,8 @@ namespace MusicLibrary
                             && (search[2] == "Введите текст" || search[2].Length == 0
                                 || (int.TryParse(search[2], out int year)
                                     && ((search[5] == "=" && year == int.Parse(album.Year))
-                                        || (search[5] == ">=" && year >= int.Parse(album.Year))
-                                        || (search[5] == "<=" && year <= int.Parse(album.Year))))))
+                                        || (search[5] == ">=" && year <= int.Parse(album.Year))
+                                        || (search[5] == "<=" && year >= int.Parse(album.Year))))))
                             foreach (var song in album.Songs)
                                 if (song.Name.ToUpper().Contains(search[0].ToUpper()) || search[0] == "Введите текст" || search[0].Length == 0)
                                     result.Add(new string[] { song.Name, album.Name, album.Year, band.Name, band.Genre });
@@ -177,19 +177,19 @@ namespace MusicLibrary
                     if (filtered && filters != null)
                     {
                         wr.WriteLine("Фильтры:");
-                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}",
                             "Песня", "Альбом", "Год", "Автор", "Жанр");
 
-                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n\n",
+                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}\n\n",
                             filters[0], filters[1], filters[2], filters[3], filters[4]);
                     }
 
 
-                    wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
+                    wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -15}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
                     foreach(var band in list)
                         foreach(var album in band.Albums)
                             foreach (var song in album.Songs)
-                                wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                                wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}",
                                             song.Name, album.Name, album.Year, band.Name, band.Genre);
                 }
                 MessageBox.Show(
@@ -214,17 +214,17 @@ namespace MusicLibrary
                     if (filtered && filters != null)
                     {
                         wr.WriteLine("Фильтры:");
-                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}",
                             "Песня", "Альбом", "Год", "Автор", "Жанр");
 
-                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n\n",
+                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -15}\n\n",
                             filters[0], filters[1], filters[2], filters[3], filters[4]);
                     }
 
 
-                    wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
+                    wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
                     foreach (var str in list)
-                        wr.WriteLine("{0, -15} {1, -15 }{2, -15} {3, -15} {4, -15}",
+                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}",
                                     str[0], str[1], str[2], str[3], str[4]);                
                 }
                 MessageBox.Show(

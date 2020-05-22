@@ -336,6 +336,7 @@ namespace MusicLibrary
                 ComparisonButton.Text = "<=";
             else
                 ComparisonButton.Text = "=";
+            SearchBox_TextChanged(sender, e);
         }
     }
 }

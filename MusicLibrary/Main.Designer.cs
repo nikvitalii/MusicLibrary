@@ -36,11 +36,6 @@
             this.ExitButton = new System.Windows.Forms.Button();
             this.libraryBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.Песня = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Альбом = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Год = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Band = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Жанр = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.musicCollectionBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.DeleteAlbum = new System.Windows.Forms.Button();
             this.DeleteBand = new System.Windows.Forms.Button();
@@ -63,6 +58,11 @@
             this.выходToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ComparisonButton = new System.Windows.Forms.Button();
+            this.Песня = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Альбом = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Год = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Band = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Жанр = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.libraryBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.musicCollectionBindingSource)).BeginInit();
@@ -145,40 +145,6 @@
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(549, 393);
             this.dataGridView1.TabIndex = 0;
-            // 
-            // Песня
-            // 
-            this.Песня.HeaderText = "Песня";
-            this.Песня.Name = "Песня";
-            this.Песня.ReadOnly = true;
-            // 
-            // Альбом
-            // 
-            this.Альбом.HeaderText = "Альбом";
-            this.Альбом.Name = "Альбом";
-            this.Альбом.ReadOnly = true;
-            // 
-            // Год
-            // 
-            this.Год.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.Год.HeaderText = "Год";
-            this.Год.MaxInputLength = 4;
-            this.Год.Name = "Год";
-            this.Год.ReadOnly = true;
-            this.Год.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Год.Width = 49;
-            // 
-            // Band
-            // 
-            this.Band.HeaderText = "Группа";
-            this.Band.Name = "Band";
-            this.Band.ReadOnly = true;
-            // 
-            // Жанр
-            // 
-            this.Жанр.HeaderText = "Жанр";
-            this.Жанр.Name = "Жанр";
-            this.Жанр.ReadOnly = true;
             // 
             // DeleteAlbum
             // 
@@ -378,6 +344,48 @@
             this.ComparisonButton.UseVisualStyleBackColor = true;
             this.ComparisonButton.Click += new System.EventHandler(this.ComparisonButton_Click);
             // 
+            // Песня
+            // 
+            this.Песня.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Песня.HeaderText = "Песня";
+            this.Песня.Name = "Песня";
+            this.Песня.ReadOnly = true;
+            this.Песня.Width = 64;
+            // 
+            // Альбом
+            // 
+            this.Альбом.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Альбом.HeaderText = "Альбом";
+            this.Альбом.Name = "Альбом";
+            this.Альбом.ReadOnly = true;
+            this.Альбом.Width = 73;
+            // 
+            // Год
+            // 
+            this.Год.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Год.HeaderText = "Год";
+            this.Год.MaxInputLength = 4;
+            this.Год.Name = "Год";
+            this.Год.ReadOnly = true;
+            this.Год.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Год.Width = 49;
+            // 
+            // Band
+            // 
+            this.Band.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Band.HeaderText = "Исполнитель";
+            this.Band.Name = "Band";
+            this.Band.ReadOnly = true;
+            this.Band.Width = 102;
+            // 
+            // Жанр
+            // 
+            this.Жанр.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Жанр.HeaderText = "Жанр";
+            this.Жанр.Name = "Жанр";
+            this.Жанр.ReadOnly = true;
+            this.Жанр.Width = 62;
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -435,11 +443,6 @@
         private System.Windows.Forms.Button DeleteAlbum;
         private System.Windows.Forms.Button DeleteBand;
         private System.Windows.Forms.TextBox SearchNameBox;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Песня;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Альбом;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Год;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Band;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Жанр;
         private System.Windows.Forms.Label SearchName;
         private System.Windows.Forms.TextBox SearchAlbumBox;
         private System.Windows.Forms.Label SearchAlbum;
@@ -458,6 +461,11 @@
         private System.Windows.Forms.ToolStripMenuItem выходToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem оПрограммеToolStripMenuItem;
         private System.Windows.Forms.Button ComparisonButton;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Песня;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Альбом;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Год;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Band;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Жанр;
     }
 }
 

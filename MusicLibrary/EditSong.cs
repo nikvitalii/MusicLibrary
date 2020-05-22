@@ -67,6 +67,8 @@ namespace MusicLibrary
                 if (result == DialogResult.Yes)
                     Close();
             }
+            else
+                Close();
         }
 
         private bool Valid(List<string> fields)
@@ -154,6 +156,7 @@ namespace MusicLibrary
                         Library.ChangeBand(Before, list);
                     ChangeTB();
                     Form.FullPrint();
+                    Changed = true;
                 }
         }
 
