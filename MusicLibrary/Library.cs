@@ -12,14 +12,16 @@ namespace MusicLibrary
 {
     public static class Library
     {
-        
+        // Строка соединения с БД.
         public static string ConnectionStr = 
             $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=
             {Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), 
             "data\\MusicLibrary.mdf")};Integrated Security = True; Connect Timeout = 30";
+
+        // Коллекция исполнителей.
         public static List<Band> Bands;
 
-
+        // Загрузка БД.
         static public void LoadDatabase()
         {
             List<string[]> bands = new List<string[]>(ListStringArrayRead("SELECT * FROM BandName"));
@@ -39,11 +41,15 @@ namespace MusicLibrary
                 }
             }
         }
+
+        // Возвращает коллекцию исполнителей.
         static public List<Band> FullDatabase()
         {
             return Bands;
         }
 
+        // Возвращает экземпляр класса Band по исполнителю и жанру.
+        // Если такого нет, создает новый.
         static public Band GetBandByName(string band, string genre)
         {
             var bands = Bands.Where(x => (x.Name.ToUpper() == band.ToUpper() && x.Genre.ToUpper() == genre.ToUpper()));
@@ -62,11 +68,12 @@ namespace MusicLibrary
             return bnd;
         }
 
+        // Добавление записи в БД.
         static public void AddItem(string song, string album, string band, string year, string genre)
         {
             var bnd = GetBandByName(band, genre);
 
-            var alb = bnd.GetAlbumByName(album, year);
+            var alb = bnd.ReturnAlbum(album, year);
 
             if (alb.InsertSong(band, song))
                 Added();
@@ -74,6 +81,7 @@ namespace MusicLibrary
                 Exists();
         }
 
+        // Поиск в БД.
         static public List<string[]> Search(List<string> search)
         {
             List<string[]> result = new List<string[]>();
@@ -94,23 +102,25 @@ namespace MusicLibrary
             return result;
         }
 
-
+        // Функции удаления.
         #region DELETE
+        // Удаление песни.
         static public void DeleteSong(List<string> list)
         {
             var band = Bands.Where(x => x.Name.ToUpper() == list[0].ToUpper()).First();
-            var album = band.ReturnAlbum(list[1]);
+            var album = band.GetAlbumByName(list[1]);
             album.DeleteSong(list[0], list[2]);
 
         }
 
+        // Удаление альбома.
         static public void DeleteAlbum(string band, string album)
         {
             var bnd = Bands.Where(x => x.Name.ToUpper() == band.ToUpper()).First();
             bnd.DeleteAlbum(album);
         }
 
-
+        // Удаление группы по экземпляру класса
         static public void DeleteBand(Band band)
         {
             foreach (var alb in band.Albums)
@@ -120,6 +130,7 @@ namespace MusicLibrary
             ExecNonQuery($"DROP TABLE [{band.Name}]");
         }
         
+        // Поиск и удаление группы по названию
         static public void DeleteBand(string band)
         {
             var bnd = Bands.Where(x => x.Name.ToUpper() == band.ToUpper()).First();
@@ -127,13 +138,16 @@ namespace MusicLibrary
         }
         #endregion
 
+        // Функции редактирования.
         #region CHANGE
+        // Редактирование песни.
         static public void ChangeSong(List<string> before, List<string> after)
         {
             DeleteSong(new List<string> { before[3], before[1], before[0] });
             AddItem(after[0], after[1], after[3], after[2], after[4]);
         }
 
+        // Редактирование альбома.
         static public void ChangeAlbum(List<string> before, List<string> after)
         {
             Band bandBefore = null;
@@ -147,11 +161,12 @@ namespace MusicLibrary
             }
             else
             {
-                Album alb = bandBefore.GetAlbumByName(before[1], before[2]);
+                Album alb = bandBefore.ReturnAlbum(before[1], before[2]);
                 bandAfter.ChangeAlbum(before, after, alb, bandBefore);
             }
         }
 
+        // Редактирование исполнителя.
         static public void ChangeBand(List<string> before, List<string> after)
         {
             var bandBefore = GetBandByName(before[3], before[4]);
@@ -163,8 +178,10 @@ namespace MusicLibrary
         }
         #endregion
 
+        // Функции сохранения в файл.
         #region SAVE
-        static public void SaveToFile(List<Band> list, bool filtered = false, List<string> filters = null)
+        // Сохранение коллекции исполнителей
+        static public void SaveToFile(List<Band> list)
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.DefaultExt = ".txt";
@@ -174,17 +191,6 @@ namespace MusicLibrary
             {
                 using (StreamWriter wr = new StreamWriter(dialog.FileName))
                 {
-                    if (filtered && filters != null)
-                    {
-                        wr.WriteLine("Фильтры:");
-                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}",
-                            "Песня", "Альбом", "Год", "Автор", "Жанр");
-
-                        wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -25}\n\n",
-                            filters[0], filters[1], filters[2], filters[3], filters[4]);
-                    }
-
-
                     wr.WriteLine("{0, -25} {1, -30 }{2, -6} {3, -25} {4, -15}\n", "Песня", "Альбом", "Год", "Автор", "Жанр");
                     foreach(var band in list)
                         foreach(var album in band.Albums)
@@ -201,7 +207,9 @@ namespace MusicLibrary
             }
 
         }
-        static public void SaveToFile(List<string[]> list, bool filtered = false, List<string> filters = null)
+
+        // Сохранение выборки
+        static public void SearchResultToFile(List<string[]> list, bool filtered = false, List<string> filters = null)
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.DefaultExt = ".txt";
@@ -238,6 +246,7 @@ namespace MusicLibrary
         }
         #endregion
 
+        // Очистка базы данных
         static public void ClearDatabase()
         {
             DialogResult result = MessageBox.Show(
@@ -285,7 +294,9 @@ namespace MusicLibrary
             }
         }
 
+        // Функции запросов в БД.
         #region QUERIES
+        // Выполнение запроса без возвращаемых данных.
         static public void ExecNonQuery(string query)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionStr))
@@ -304,6 +315,8 @@ namespace MusicLibrary
                 connection.Close();
             }
         }
+
+        // Выполнение запроса, возвращающего коллекцию массивов строк.
         static List<string[]> ListStringArrayRead(string query)
         {
             List<string[]> list = new List<string[]>();
@@ -328,6 +341,8 @@ namespace MusicLibrary
             }
             return list;
         }
+
+        // Выполнение запроса, возвращающего коллекцию строк.
         static List<string> ListStringRead(string query)
         {
             List<string> list = new List<string>();
@@ -354,7 +369,9 @@ namespace MusicLibrary
         }
         #endregion
 
+        // Сообщения.
         #region MESSAGES
+        // Песня добавлена.
         static public void Added()
         {
             MessageBox.Show(
@@ -364,6 +381,8 @@ namespace MusicLibrary
                 MessageBoxIcon.Information
             );
         }
+
+        // Песня уже существует
         static public void Exists()
         {
             MessageBox.Show(

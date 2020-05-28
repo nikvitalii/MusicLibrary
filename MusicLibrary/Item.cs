@@ -8,6 +8,7 @@ namespace MusicLibrary
 {
     abstract public class Item
     {
+        // Название песни, альбома или группы
         public string Name;
 
         public Item(string n)

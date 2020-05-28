@@ -13,7 +13,10 @@ namespace MusicLibrary
 {
     public partial class Main : Form
     {
+        // Форма добавления.
         AddSong add;
+
+        // Форма редактирования.
         EditSong edit;
 
         public Main()
@@ -29,6 +32,7 @@ namespace MusicLibrary
             add = null;
         }
 
+        // Подтверждение выхода.
         private void ExitButton_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show(
@@ -41,6 +45,7 @@ namespace MusicLibrary
                 Close();
         }
 
+        // Вызов функций вывода списка песен.
         #region PRINT
         private void PrintButton_Click(object sender, EventArgs e)
         {
@@ -49,7 +54,6 @@ namespace MusicLibrary
 
         public void FullPrint()
         {
-            dataGridView1.Rows.Clear();
             PrintFromBandList(Library.FullDatabase());
 
             SearchNameBox.Text = "Введите текст";
@@ -66,6 +70,7 @@ namespace MusicLibrary
                     foreach (var album in band.Albums)
                         foreach (var song in album.Songs)
                             dataGridView1.Rows.Add(new string[] { song.Name, album.Name, album.Year, band.Name, band.Genre });
+
         }
 
         private void PrintFromList(List<string[]> list)
@@ -76,6 +81,7 @@ namespace MusicLibrary
         }
     #endregion
 
+        // Вызов функций удаления.
         #region DELETE
         private void DeleteSong_Click(object sender, EventArgs e)
         {
@@ -173,6 +179,7 @@ namespace MusicLibrary
         }
         #endregion
 
+        // Смена фокуса на текстбоксах.
         #region BOXFOCUS
         private void Lost(TextBox box)
         {
@@ -237,12 +244,15 @@ namespace MusicLibrary
             Lost(SearchGenreBox);
         }
         #endregion
+
+        // Поиск при изменении текстбоксов.
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
             List<string> list = new List<string> { SearchNameBox.Text, SearchAlbumBox.Text, SearchYearBox.Text, SearchBandBox.Text, SearchGenreBox.Text, ComparisonButton.Text};
             PrintFromList(Library.Search(list));
         }
 
+        // Открытие формы добавления.
         private void AddSong_Click(object sender, EventArgs e)
         {
             if (add == null || add.Text == "")
@@ -257,11 +267,7 @@ namespace MusicLibrary
             }
         }
 
-        private void Main_FormClosing(object sender, FormClosingEventArgs e)
-        {
-           
-        }
-
+        // Проверка, открыта ли форма.
         private bool CheckOpened(string name)
         {
             FormCollection fc = Application.OpenForms;
@@ -276,6 +282,7 @@ namespace MusicLibrary
             return false;
         }
 
+        // Открытие формы редактирования.
         private void EditSong_Click(object sender, EventArgs e)
         {
             if (NotEmpty())
@@ -297,11 +304,13 @@ namespace MusicLibrary
             }
         }
 
+        // Сохранение базы данных.
         private void сохранитьКакToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
             Library.SaveToFile(Library.FullDatabase());
         }
 
+        // Сохранение выборки.
         private void сохранитьВыборкуКакToolStripMenuItem_Click(object sender, EventArgs e)
         {
             List<string> list = new List<string> { SearchNameBox.Text, SearchAlbumBox.Text, SearchYearBox.Text, SearchBandBox.Text, SearchGenreBox.Text };
@@ -313,21 +322,24 @@ namespace MusicLibrary
                 else
                     filtered = true;
             }
-            Library.SaveToFile(Library.Search(list), filtered, list);
+            Library.SearchResultToFile(Library.Search(list), filtered, list);
         }
 
+        // Очистка базы данных.
         private void очиститьБазуДанныхToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Library.ClearDatabase(); 
             FullPrint();
         }
 
+        // Открытие окна "О программе".
         private void оПрограммеToolStripMenuItem_Click(object sender, EventArgs e)
         {
             About about = new About();
             about.Show();
         }
 
+        // Смена текста на кнопке.
         private void ComparisonButton_Click(object sender, EventArgs e)
         {
             if (ComparisonButton.Text == "=")

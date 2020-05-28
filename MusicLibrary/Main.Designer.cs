@@ -418,7 +418,6 @@
             this.MinimizeBox = false;
             this.Name = "Main";
             this.Text = "MusicLibrary";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             this.Load += new System.EventHandler(this.MusicLibrary_Load);
             ((System.ComponentModel.ISupportInitialize)(this.libraryBindingSource)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();

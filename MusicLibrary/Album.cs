@@ -8,14 +8,11 @@ namespace MusicLibrary
 {
     public class Album:Item
     {
+        // Коллекция песен.
         public List<Song> Songs;
-        public string Year;
 
-        public Album(string album, string year, string song) : base(album)
-        {
-            Songs = new List<Song> { new Song(song)};
-            Year = year;
-        }
+        // Год издания альбома.
+        public string Year;
         
         public Album(string album, string year):base(album)
         {
@@ -23,6 +20,7 @@ namespace MusicLibrary
             Year = year;
         }
 
+        // Добавление песни в альбом.
         public bool InsertSong(string band, string song)
         {
             var songs = Songs.Where(x => x.Name.ToUpper() == song.ToUpper());
@@ -37,6 +35,7 @@ namespace MusicLibrary
             return false;
         }
 
+        // Удаление песни.
         public void DeleteSong(string band, string song)
         {
             var sng = Songs.Where(x => x.Name.ToUpper() == song.ToUpper()).First();
@@ -47,6 +46,7 @@ namespace MusicLibrary
                 Library.DeleteAlbum(band, Name);
         }
 
+        // Копирование из другого альбома
         public void CopyFrom(string band, Album alb)
         {
             foreach (var song in alb.Songs)

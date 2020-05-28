@@ -8,20 +8,21 @@ namespace MusicLibrary
 {
     public class Band:Item
     {
+        // Коллекция альбомов.
         public List<Album> Albums;
+
+        // Жанр группы.
         public string Genre;
-        public Band(string band, string genre, string album, string year, string song):base(band)
-        {
-            Genre = genre;
-            Albums = new List<Album> { new Album(album, year, song) };
-        }
+
         public Band(string band, string genre):base(band)
         {
             Genre = genre;
             Albums = new List<Album>();
         }
 
-        public Album GetAlbumByName(string album, string year)
+        // Возвращение экземлпяра альбома. 
+        // Если такого нет, создается новый.
+        public Album ReturnAlbum(string album, string year)
         {
             Album alb;
             var albums = Albums.Where(x => (x.Name.ToUpper() == album.ToUpper() && x.Year == year));
@@ -39,19 +40,21 @@ namespace MusicLibrary
             return alb;
         }
 
-        public Album ReturnAlbum(string alb)
+        // Возвращение экземпляра альбома без создания нового.
+        public Album GetAlbumByName(string alb)
         {
             var album = Albums.Where(x => x.Name.ToUpper() == alb.ToUpper()).First();
             return album;
         }
 
-        public int DeleteAlbum(string alb)
+        // Удаление альбома по названию.
+        public void DeleteAlbum(string alb)
         {
-            var album = ReturnAlbum(alb);
+            var album = GetAlbumByName(alb);
             DeleteAlbum(album);
-            return Albums.Count;
         }
 
+        // Удаление альбома по экземпляру класса.
         public void DeleteAlbum(Album alb)
         {
             Library.ExecNonQuery($"DELETE FROM [{Name}] WHERE (Name=N'{alb.Name}' and Year=N'{alb.Year}')");
@@ -61,12 +64,13 @@ namespace MusicLibrary
                 Library.DeleteBand(this);
         }
 
+        // Изменение параметров альбома.
         public void ChangeAlbum(List<string> before, List<string> after, Album albumBefore = null, Band bandBefore = null)
         {
             if(albumBefore == null)
-                albumBefore = GetAlbumByName(before[1], before[2]);
+                albumBefore = ReturnAlbum(before[1], before[2]);
 
-            var albumAfter = GetAlbumByName(after[1], after[2]);
+            var albumAfter = ReturnAlbum(after[1], after[2]);
 
             albumAfter.CopyFrom(Name, albumBefore);
 

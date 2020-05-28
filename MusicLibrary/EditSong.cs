@@ -10,16 +10,20 @@ using System.Windows.Forms;
 
 namespace MusicLibrary
 {
-    public partial class EditSong : Form
+    public partial class EditSong : Validateable
     {
-        private bool Changed;
+        // Ссылка на главную форму.
         private Main Form;
+
+        // Коллекция строк до изменений.
         private List<string> Before;
-        public EditSong()
+
+        public EditSong():base()
         {
             InitializeComponent();
         }
 
+        // Заполнение текстбоксов при открытии формы.
         public void Edit(List<string> list, Main form)
         {
             Form = form;
@@ -39,6 +43,7 @@ namespace MusicLibrary
             Changed = false;
         }
 
+        // Изменение текстбоксов после изменения.
         private void ChangeTB()
         {
             NameBefore.Text = NameAfter.Text;
@@ -54,75 +59,13 @@ namespace MusicLibrary
             Before[4] = GenreAfter.Text;
         }
 
+        // Выход из формы.
         private void Cancel_Click(object sender, EventArgs e)
         {
-            if (!Changed)
-            {
-                DialogResult result = MessageBox.Show(
-                          $"Вы действительно хотите выйти без изменений?",
-                          "Подтвердите действие",
-                          MessageBoxButtons.YesNo,
-                          MessageBoxIcon.Question
-                          );
-                if (result == DialogResult.Yes)
-                    Close();
-            }
-            else
-                Close();
+            ClosingForm();
         }
 
-        private bool Valid(List<string> fields)
-        {
-            bool parsed = int.TryParse(YearAfter.Text, out int n);
-            if (!parsed)
-            {
-                MessageBox.Show(
-                       "Введите целое число в год",
-                       "Ошибка",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Error
-                   );
-                return false;
-            }
-            else if (n > DateTime.Now.Year || n < 1000)
-            {
-                MessageBox.Show(
-                       "Введите корректный год",
-                       "Ошибка",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Error
-                   );
-                return false;
-            }
-            List<string> errors = new List<string> { "название группы", "название альбома", "название песни", "год опубликования", "жанр" };
-            List<char> forbidden = new List<char> { '.', ',', '-', '\\', '/', '\'', '\"', '=', '-', '+' };
-            for (int i = 0; i < 5; ++i)
-            {
-                if (fields[i].Length == 0)
-                {
-                    MessageBox.Show(
-                      $"Введите {errors[i]}",
-                      "Ошибка",
-                      MessageBoxButtons.OK,
-                      MessageBoxIcon.Error
-                    );
-                    return false;
-                }
-                foreach (var s in forbidden)
-                    if (fields[i].Contains(s))
-                    {
-                        MessageBox.Show(
-                          $"Текст не должен содержать символ {s}",
-                          "Ошибка",
-                          MessageBoxButtons.OK,
-                          MessageBoxIcon.Error
-                        );
-                        return false;
-                    }
-            }
-            return true;
-        }
-
+        // Проверка, равны ли варианты до и после.
         private bool NotEqual()
         {
             if (
@@ -142,6 +85,7 @@ namespace MusicLibrary
             return false;
         }
 
+        // Сохранение изменений.
         private void Save_Click(object sender, EventArgs e)
         {
             List<string> list = new List<string> { NameAfter.Text, AlbumAfter.Text, YearAfter.Text, BandAfter.Text, GenreAfter.Text };
@@ -160,6 +104,7 @@ namespace MusicLibrary
                 }
         }
 
+        // Сброс изменения.
         private void Reset_Click(object sender, EventArgs e)
         {
             NameAfter.Text = Before[0];
@@ -169,6 +114,7 @@ namespace MusicLibrary
             GenreAfter.Text = Before[4];
         }
 
+        // Изменение песни.
         private void SongChange_CheckedChanged(object sender, EventArgs e)
         {
             NameAfter.Enabled = true;
@@ -178,6 +124,7 @@ namespace MusicLibrary
             GenreAfter.Enabled = true;
         }
 
+        // Изменение альбома.
         private void AlbumChange_CheckedChanged(object sender, EventArgs e)
         {
             NameAfter.Enabled = false;
@@ -187,6 +134,7 @@ namespace MusicLibrary
             GenreAfter.Enabled = false;
         }
 
+        // Изменение исполнителя.
         private void BandChange_CheckedChanged(object sender, EventArgs e)
         {
 

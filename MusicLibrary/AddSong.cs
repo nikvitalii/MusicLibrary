@@ -11,13 +11,13 @@ using System.Windows.Forms;
 
 namespace MusicLibrary
 {
-    public partial class AddSong : Form
+    public partial class AddSong : Validateable 
     {
-        public AddSong()
+        public AddSong() : base()
         {
             InitializeComponent();
         }
-
+        // Очистка текстбоксов.
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             SongName.Text = "";
@@ -38,8 +38,10 @@ namespace MusicLibrary
         {
             Genre.Text = "";
         }
+        //
 
-        private void Button2_Click(object sender, EventArgs e)
+        // Очистка всех текстбоксов.
+        private void ClearAllButton_Click(object sender, EventArgs e)
         {
             SongName.Text = "";
             Album.Text = "";
@@ -47,86 +49,21 @@ namespace MusicLibrary
             Band.Text = "";
             Genre.Text = "";
         }
-        private bool Valid()
+        
+        // Добавление записи.
+        private void AddButton_Click(object sender, EventArgs e)
         {
-            bool parsed = int.TryParse(Year.Text, out int n);
-            if (!parsed)
-            {
-                MessageBox.Show(
-                       "Введите целое число в год",
-                       "Ошибка",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Error
-                   );
-                return false;
-            }
-            else if (n > DateTime.Now.Year || n < 1000)
-            {
-                MessageBox.Show(
-                       "Введите корректный год",
-                       "Ошибка",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Error
-                   );
-                return false;
-            }
-            List<string> fields = new List<string> { Band.Text, Album.Text, SongName.Text, Year.Text, Genre.Text };
-            List<string> errors = new List<string> { "название группы", "название альбома", "название песни", "год опубликования", "жанр" };
-            List<char> forbidden = new List<char> { '.', ',', '-', '\\', '/', '\'', '\"', '=', '-', '+' };
-            for (int i = 0; i < 5; ++i)
-            {
-                if (fields[i].Length == 0)
-                {
-                    MessageBox.Show(
-                      $"Введите {errors[i]}",
-                      "Ошибка",
-                      MessageBoxButtons.OK,
-                      MessageBoxIcon.Error
-                    );
-                    return false;
-                }
-                if (fields[i].Length > 50)
-                {
-                    MessageBox.Show(
-                      $"Слишком длинный текст (Максимум 50 символов)",
-                      "Ошибка",
-                      MessageBoxButtons.OK,
-                      MessageBoxIcon.Error
-                    );
-                    return false;
-                }
-                foreach (var s in forbidden)
-                    if (fields[i].Contains(s))
-                    {
-                        MessageBox.Show(
-                          $"Текст не должен содержать символ {s}",
-                          "Ошибка",
-                          MessageBoxButtons.OK,
-                          MessageBoxIcon.Error
-                        );
-                        return false;
-                    }
-            }
-            return true;
-        }
-        private void Button1_Click(object sender, EventArgs e)
-        {
-            if (Valid())
+            if (Valid(new List<string> { SongName.Text, Album.Text, Year.Text, Band.Text, Genre.Text }))
             {
                 Library.AddItem(SongName.Text, Album.Text, Band.Text, Year.Text, Genre.Text);
+                Changed = true;
             }
         }
 
-        private void Button3_Click(object sender, EventArgs e)
+        // Выход из формы.
+        private void ExitButtonClick(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show(
-                      $"Вы действительно хотите выйти?",
-                      "Подтвердите действие",
-                      MessageBoxButtons.YesNo,
-                      MessageBoxIcon.Question
-                      );
-            if (result == DialogResult.Yes)
-                Close();
+            ClosingForm();
         }
     }
 }
