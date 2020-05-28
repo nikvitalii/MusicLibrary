@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[ALB2] (
+    [Name] NVARCHAR (50) NOT NULL,
+);
+CREATE TABLE {band} (
+    [Name] NVARCHAR(50) NOT NULL,
+    [Genre]NVARCHAR(50) NOT NULL, 
+    PRIMARY KEY CLUSTERED ([Name] ASC)
+)
